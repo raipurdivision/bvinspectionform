@@ -1,0 +1,1074 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambush Brake Van Inspection Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, #1a37ab 0%, #87ceeb 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            background: rgb(69, 95, 96);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 6px;
+        }
+
+        .header h2 {
+            font-size: 1.4em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .voice-toggle-container, .mobile-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .voice-toggle-label, .mobile-toggle-label {
+            color: white;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Mobile view */
+        body.mobile-view .container { max-width: 100%; margin: 0; border-radius: 0; }
+        body.mobile-view { padding: 0; }
+        body.mobile-view .header h1 { font-size: 1.3em; }
+        body.mobile-view .header h2 { font-size: 0.9em; }
+        body.mobile-view .header-content { flex-direction: column; gap: 10px; }
+        body.mobile-view .form-container { padding: 15px; }
+        body.mobile-view .info-fields { flex-direction: column; gap: 10px; }
+        body.mobile-view .info-field { flex: 1 1 100%; }
+        body.mobile-view table { font-size: 10px; }
+        body.mobile-view th, body.mobile-view td { padding: 5px 3px; font-size: 9px; }
+        body.mobile-view input[type="text"], body.mobile-view input[type="time"],
+        body.mobile-view input[type="date"], body.mobile-view select,
+        body.mobile-view textarea { font-size: 11px; padding: 5px; }
+        body.mobile-view .button-group { flex-direction: column; gap: 10px; }
+        body.mobile-view button { width: 100%; padding: 10px 15px; font-size: 0.9em; }
+        body.mobile-view .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .toggle-switch {
+            position: relative; width: 50px; height: 26px; display: inline-block;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ffb366; transition: 0.4s; border-radius: 26px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px;
+            left: 3px; bottom: 3px; background-color: white;
+            transition: 0.4s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: #2ecc71; }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .voice-status { color: white; font-size: 0.75em; font-weight: bold; min-width: 30px; }
+        .voice-indicator { display: none; color: white; font-size: 1.3em; animation: pulse 1.5s infinite; margin-left: 5px; }
+        .voice-indicator.listening { display: inline-flex; align-items: center; gap: 5px; }
+        .listening-text { font-size: 0.75em; font-weight: bold; letter-spacing: 0.5px; color: #e74c3c; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        @keyframes micPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .form-container { padding: 30px; background: #e6f2ff; }
+
+        .info-section {
+            background: white; padding: 20px; margin-bottom: 20px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .info-section h2 {
+            font-size: 1.1em; font-weight: bold; color: #2c3e50;
+            margin-bottom: 15px; text-align: center; text-transform: uppercase;
+            border-bottom: 2px solid #4a90e2; padding-bottom: 8px;
+        }
+
+        .info-fields {
+            display: flex; justify-content: space-between;
+            gap: 20px; margin-bottom: 15px; flex-wrap: wrap;
+        }
+
+        .info-field { flex: 0 1 320px; }
+        .info-field.full-width { flex: 1 1 100%; }
+        .info-field.half { flex: 0 1 48%; }
+
+        .info-field label {
+            display: block; font-weight: bold; margin-bottom: 5px;
+            color: #2c3e50; font-size: 12px;
+        }
+
+        .info-field input, .info-field select {
+            width: 100%; padding: 8px; border: 2px solid #b3d9ff;
+            border-radius: 5px; font-size: 12px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .info-field input:focus, .info-field select:focus {
+            outline: none; border-color: #4a90e2;
+            box-shadow: 0 0 8px rgba(74,144,226,0.3);
+        }
+
+        .table-wrapper {
+            overflow-x: auto; margin-bottom: 20px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        table { width: 100%; border-collapse: collapse; background: white; }
+
+        thead { background: linear-gradient(135deg, #5b9dd9 0%, #4a8ec2 100%); color: white; }
+
+        th {
+            padding: 12px 8px; text-align: center; font-weight: bold;
+            font-size: 12px; border: 2px solid #3a7ca5; text-transform: uppercase;
+        }
+
+        tbody tr { transition: background-color 0.3s; }
+        tbody tr:nth-child(odd) { background-color: #f0f8ff; }
+        tbody tr:nth-child(even) { background-color: #ffffff; }
+        tbody tr:hover { background-color: #d4e9ff; }
+
+        td {
+            padding: 8px; border: 1px solid #b3d9ff;
+            text-align: center; font-size: 12px;
+        }
+
+        td:first-child { font-weight: bold; background-color: #e6f2ff; font-size: 12px; }
+        td.obs-cell { text-align: left; font-weight: bold; font-size: 12px; }
+
+        input[type="text"], textarea { text-transform: uppercase; }
+
+        input[type="text"], input[type="time"], input[type="date"],
+        input[type="file"], select, textarea {
+            width: 100%; padding: 6px; border: 2px solid #b3d9ff;
+            border-radius: 5px; font-size: 12px; font-weight: bold;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="time"]:focus, input[type="date"]:focus,
+        select:focus, textarea:focus {
+            outline: none; border-color: #4a90e2;
+            box-shadow: 0 0 8px rgba(74,144,226,0.3);
+        }
+
+        .remarks-section { margin-top: 20px; margin-bottom: 15px; }
+        .remarks-section label {
+            display: block; font-weight: bold; margin-bottom: 5px;
+            color: #2c3e50; font-size: 12px;
+        }
+        .remarks-section textarea {
+            width: 100%; font-size: 12px; min-height: 60px;
+            border: 2px solid #b3d9ff; overflow-y: hidden; resize: none;
+        }
+
+        .button-group {
+            display: flex; gap: 15px; justify-content: center;
+            flex-wrap: wrap; margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 30px; font-size: 1em; font-weight: bold;
+            border: none; border-radius: 8px; cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .submit-btn { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
+        .submit-btn:hover { background: linear-gradient(135deg, #2980b9 0%, #21618c 100%); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
+        .pdf-btn { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white; }
+        .pdf-btn:hover { background: linear-gradient(135deg, #d35400 0%, #ba4a00 100%); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
+        .save-draft-btn { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; }
+        .save-draft-btn:hover { background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
+        .upload-draft-btn { background: linear-gradient(135deg, #16a085 0%, #138d75 100%); color: white; }
+        .upload-draft-btn:hover { background: linear-gradient(135deg, #138d75 0%, #117a65 100%); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
+        #draftFileInput { display: none; }
+
+        .message {
+            display: none; margin-top: 20px; padding: 15px; border-radius: 8px;
+            text-align: center; font-weight: bold;
+        }
+        .message.success { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+
+        /* Zoom Overlay */
+        .zoom-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.8);
+            z-index: 9999; align-items: center; justify-content: center;
+        }
+        .zoom-overlay.active { display: flex; }
+        .zoom-input-container {
+            background: white; width: 90%; max-width: 500px;
+            border-radius: 10px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .zoom-input-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .zoom-input-title { font-size: 1.2em; font-weight: bold; color: #2c3e50; }
+        .zoom-close-btn {
+            background: #e74c3c; color: white; border: none; border-radius: 50%;
+            width: 35px; height: 35px; font-size: 1.5em; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; line-height: 1;
+        }
+        .zoom-close-btn:hover { background: #c0392b; }
+        .zoom-input {
+            width: 100%; min-height: 150px; padding: 15px; font-size: 18px;
+            border: 2px solid #4a90e2; border-radius: 8px; resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .zoom-input:focus { outline: none; border-color: #357abd; box-shadow: 0 0 10px rgba(74,144,226,0.3); }
+        .zoom-done-btn {
+            width: 100%; margin-top: 15px; padding: 12px;
+            background: #27ae60; color: white; border: none;
+            border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer;
+        }
+        .zoom-done-btn:hover { background: #229954; }
+
+        .section-label {
+            font-size: 0.95em; font-weight: bold; color: #357abd;
+            margin: 10px 0 5px 0; text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.3em; }
+            .header h2 { font-size: 0.95em; }
+            .header-content { flex-direction: column; align-items: center; gap: 10px; }
+            .button-group { flex-direction: column; }
+            button { width: 100%; }
+            .info-field.half { flex: 1 1 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Zoom Overlay -->
+<div class="zoom-overlay" id="zoomOverlay">
+    <div class="zoom-input-container">
+        <div class="zoom-input-header">
+            <span class="zoom-input-title" id="zoomTitle">Enter Text</span>
+            <button class="zoom-close-btn" onclick="closeZoomInput()">×</button>
+        </div>
+        <textarea class="zoom-input" id="zoomInput" placeholder="Type or speak here..."></textarea>
+        <button class="zoom-done-btn" onclick="closeZoomInput()">✓ Done</button>
+    </div>
+</div>
+
+<div class="container">
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Ambush Brake Van Inspection Report</h1>
+        <h2>Raipur Division</h2>
+        <div class="header-content">
+            <div class="mobile-toggle-container">
+                <span class="mobile-toggle-label">📱 Mobile View</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="mobileToggle" onchange="toggleMobileView()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="voice-toggle-container">
+                <span class="voice-toggle-label">🎤 Voice</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="voiceToggle" onchange="toggleVoiceTyping()">
+                    <span class="slider"></span>
+                </label>
+                <span class="voice-status" id="voiceStatus">OFF</span>
+                <span class="voice-indicator" id="voiceIndicator">
+                    <span>🎤</span>
+                    <span class="listening-text">Listening</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+
+        <!-- ── TOP FIELDS SECTION ── -->
+        <div class="info-section">
+            
+            <div class="info-fields">
+                <div class="info-field half">
+                    <label for="formDate">Date:</label>
+                    <input type="date" id="formDate">
+                </div>
+                <div class="info-field half">
+                    <label for="trainNo">Train No.:</label>
+                    <input type="text" id="trainNo" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="load">Load:</label>
+                    <input type="text" id="load" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="slr">SLR:</label>
+                    <input type="text" id="slr" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="bpcNo">BPC No.:</label>
+                    <input type="text" id="bpcNo" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="issued">Issued:</label>
+                    <input type="text" id="issued" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="issuedDate">Issued Date:</label>
+                    <input type="date" id="issuedDate">
+                </div>
+                <div class="info-field half">
+                    <label for="brpPercent">BR/P %:</label>
+                    <input type="text" id="brpPercent" placeholder="">
+                </div>
+            </div>
+        </div>
+
+        <!-- ── CREW TABLE ── -->
+        <div class="info-section">
+            <h2>Crew Details</h2>
+            <div class="table-wrapper">
+                <table id="crewTable">
+                    <thead>
+                        <tr>
+                            <th>Crew</th>
+                            <th>TM Name</th>
+                            <th>HQ</th>
+                            <th>PME Due</th>
+                            <th>CRC Due</th>
+                            <th>Spectacles</th>
+                            <th>Detonators</th>
+                            <th>Uniform</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight:bold;">TM</td>
+                            <td><input type="text" placeholder=""></td>
+                            <td><input type="text" placeholder=""></td>
+                            <td><input type="date"></td>
+                            <td><input type="date"></td>
+                            <td>
+                                <select>
+                                    <option value="">-Select-</option>
+                                    <option>YES</option>
+                                    <option>NO</option>
+                                    <option>N/A</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select>
+                                    <option value="">-Select-</option>
+                                    <option>YES</option>
+                                    <option>NO</option>
+                                    <option>N/A</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select>
+                                    <option value="">-Select-</option>
+                                    <option>YES</option>
+                                    <option>NO</option>
+                                    <option>N/A</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── INSPECTION TABLE ── -->
+        <div class="info-section">
+            <h2>Brake Van Inspection Checklist</h2>
+            <div class="table-wrapper">
+                <table id="inspectionTable">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">SN</th>
+                            <th style="width:55%;">Observation / Irregularities</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inspectionBody">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── ADDITIONAL FIELDS ── -->
+        <div class="info-section">
+            <h2>Additional Information</h2>
+            <div class="info-fields">
+                <div class="info-field half">
+                    <label for="locoNumber">Loco Number:</label>
+                    <input type="text" id="locoNumber" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="inspectionSection">Inspection Section:</label>
+                    <input type="text" id="inspectionSection" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="lpName">Name of Loco Pilot (Mail/Express):</label>
+                    <input type="text" id="lpName" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="alpName">Name of ALP:</label>
+                    <input type="text" id="alpName" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="rDepBytArr">DEP /  ARR:</label>
+                    <input type="text" id="DepArr" placeholder="">
+                </div>
+                <div class="info-field half">
+                    <label for="allRightSignal">All Right Signal Exchange by Crew &amp; TM:</label>
+                    <select id="allRightSignal">
+                        <option value="">-Select-</option>
+                        <option>YES</option>
+                        <option>NO</option>
+                        <option>N/A</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── REMARKS ── -->
+        <div class="info-section">
+            
+            <div class="remarks-section">
+                <label for="irregularities">Irregularities (if any):</label>
+                <textarea id="irregularities" rows="3" placeholder="ENTER IRREGULARITIES"></textarea>
+            </div>
+            <div class="remarks-section">
+                <label for="otherRemarks">Other Remarks (if any):</label>
+                <textarea id="otherRemarks" rows="2" placeholder="OTHER REMARKS"></textarea>
+            </div>
+        </div>
+
+        <!-- ── PLACE, CLI SECTION (SIGNATURE REMOVED) ── -->
+        <div class="info-section">
+            
+            <div class="info-fields">
+                <div class="info-field half">
+                    <label for="place">Place:</label>
+                    <input type="text" id="place" placeholder="PLACE">
+                </div>
+                <div class="info-field half">
+                    <label for="signDate">Date:</label>
+                    <input type="date" id="signDate">
+                </div>
+                <div class="info-field full-width">
+                    <label for="cliName">CLI Name and HQ:</label>
+                    <select id="cliName">
+                        <option value="">Select CLI Name and HQ</option>
+                        <option>A K REDDY/CLI/R</option>
+                        <option>A.R.TARAM/CLI/BIA</option>
+                        <option>ABDUL MOIN KHAN/CLI/BIA</option>
+                        <option>AKHILESH KUMAR/CLI/BIA</option>
+                        <option>AMIT KUMAR BANKURE/CLI/BYT</option>
+                        <option>ANANT PRAKASH SHRIVASTAVA/CLI/BIA</option>
+                        <option>ANIL KUMAR/CLI/BIA</option>
+                        <option>ANKIT RAM KANT/CLI/BIA</option>
+                        <option>AVON KUMAR SAHU/CLI/R</option>
+                        <option>ASHISH WANJARI/CLI/BYT</option>
+                        <option>B B KUSHWAHA/CLI/BIA</option>
+                        <option>B K HARMUKH/CLI/BIA</option>
+                        <option>B. K. SAHA/CLI/BIA</option>
+                        <option>B.K.SONI/CLI/BIA</option>
+                        <option>BHARAT SINGH ATBHAIYYA/CLI/R</option>
+                        <option>BHOLI CHAUDHARY/CLI/R</option>
+                        <option>BIKRAMJIT KANRAR/CLI/BIA</option>
+                        <option>BINOD KUMAR RAM/CLI/R</option>
+                        <option>DEEPANNITA PUNTAMBEKAR/CLI/BIA</option>
+                        <option>DILLI RAO/CLI/BYT</option>
+                        <option>G. C. BISWAS/CLI/R</option>
+                        <option>G. V. R. K. MADHU/CLI/BIA</option>
+                        <option>GIRDHARI LAL/CLI/R</option>
+                        <option>JAISHANKAR SHARMA/CLI/BIA</option>
+                        <option>JITENDRA KUMAR MISHRA/CLI/BYT</option>
+                        <option>K P LAHARE/CLI/R</option>
+                        <option>K P HIRWANI/CLI/BYT</option>
+                        <option>K. K. SAHU/CLI/BIA</option>
+                        <option>KHUSAL SINGH/CLI/DRZ</option>
+                        <option>MAHESHWAR/CLI/BIA</option>
+                        <option>MANOJ KUMAR SAO/CLI/R</option>
+                        <option>MANSUKH LAL CHANDRAKAR/CLI/R</option>
+                        <option>MOHIT KUMAR SWARNKAR/CLI/BIA</option>
+                        <option>N. R. KARPAL/CLI/BIA</option>
+                        <option>N.K. BHOI/CLI/R</option>
+                        <option>NITIN KUKDE/CLI/BYT</option>
+                        <option>NIRMAL KUMAR/CLI/BYT</option>
+                        <option>P.K. PATEL/CLI/BIA</option>
+                        <option>PANKAJ KUMAR SINGH/CLI/BIA</option>
+                        <option>PAWAN KUMAR SINGH/CLI/BIA</option>
+                        <option>PALAK RAM ALENDRA/CLI/DRZ</option>
+                        <option>RAJENDRA KUMAR/CLI/BIA</option>
+                        <option>RAJESH KUMAR DESHMUKH/CLI/R</option>
+                        <option>RAJNEESH BENERJEE/CLI/BIA</option>
+                        <option>RANJEET SINGH/CLI/BYT</option>
+                        <option>RAKESH KUMAR KOSTA/CLI/DRZ</option>
+                        <option>S K GAUTAM/CLI/BIA</option>
+                        <option>S S HUSSAIN/CLI/BIA</option>
+                        <option>S. C. RAI/CLI/BIA</option>
+                        <option>S. K. SINGH/CLI/BIA</option>
+                        <option>S. L. SONI/CLI/R</option>
+                        <option>SANJAY KUMAR ROY/CLI/BIA</option>
+                        <option>SANJAY SINGH/CLI/BYT</option>
+                        <option>SANJEEV KUMAR SHARMA/CLI/BIA</option>
+                        <option>SANTOSH KUMAR PATKAR/CLI/BIA</option>
+                        <option>SHAILENDRA SINGH/CLI/BIA</option>
+                        <option>SUNDEEP KUMAR SHARMA/CLI/BIA</option>
+                        <option>SUNIL KUMAR DEWANGAN/CLI/BIA</option>
+                        <option>SANAT KUMAR SAHU/CLI/DRZ</option>
+                        <option>V.K. BHAGAT/CLI/R</option>
+                        <option>VIJAY KUMAR ARYA/CLI/BIA</option>
+                        <option>VIKAS SHENDE/CLI/BIA</option>
+                        <option>VINAY KUMAR VINCHURE/CLI/BIA</option>
+                        <option>VINAY PANTAWANE/CLI/BIA</option>
+                        <option>Y. RAMU/CLI/BIA</option>
+                        <option>YOGESH KUMAR MIHAULIA/CLI/BIA</option>
+                        <option>OTHERS</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="draftFileInput" accept=".json" onchange="handleDraftUpload(event)">
+
+        <div class="button-group">
+            <button class="save-draft-btn" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="upload-draft-btn" onclick="document.getElementById('draftFileInput').click()">📂 Upload Draft</button>
+            <button class="submit-btn" onclick="submitForm()">✅ Submit</button>
+            <button class="pdf-btn" onclick="generatePDF()">📄 Generate PDF</button>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+</div>
+
+<script>
+// ── INSPECTION ITEMS ──────────────────────────────────────────────
+const inspectionItems = [
+    { sn: 1,  obs: 'Safety Equipments Almirah Door',         defaultStatus: 'LEG SEALED WITH PACK THREAD' },
+    { sn: 2,  obs: 'Stretcher',                              defaultStatus: 'AVAILABLE' },
+    { sn: 3,  obs: 'Fire Extinguisher Due Date',             defaultStatus: '' },
+    { sn: 4,  obs: 'Wooden Wedge',                          defaultStatus: '' },
+    { sn: 5,  obs: 'TM Hand Book',                          defaultStatus: 'AVAILABLE' },
+    { sn: 6,  obs: 'First Aid Box',                         defaultStatus: 'AVAILABLE' },
+    { sn: 7,  obs: 'Working Time Table',                    defaultStatus: '' },
+    { sn: 8,  obs: 'Tricolor Torch',                        defaultStatus: 'AVAILABLE' },
+    { sn: 9,  obs: 'Tail Lamp',                             defaultStatus: 'AVAILABLE' },
+    { sn: 10, obs: 'LV Board',                              defaultStatus: 'AVAILABLE' },
+    { sn: 11, obs: 'HS Flag',                               defaultStatus: '' },
+    { sn: 12, obs: 'Walkie-Talkie',                         defaultStatus: 'WORKING ORDER' },
+    { sn: 13, obs: 'Portable Telephone',                    defaultStatus: 'NIL' },
+    { sn: 14, obs: 'PTL Equipment',                         defaultStatus: 'AVAILABLE' },
+    { sn: 15, obs: 'BP / FP Gauge Calibration Date',        defaultStatus: 'AVAILABLE' },
+    { sn: 16, obs: 'Spare BP / FP Hose Pipe',              defaultStatus: 'AVAILABLE' },
+    { sn: 17, obs: 'BP / FP Couplers',                     defaultStatus: 'AVAILABLE' },
+    { sn: 18, obs: 'BP Pressure',                          defaultStatus: '' },
+    { sn: 19, obs: 'FP Pressure',                          defaultStatus: '' },
+    { sn: 20, obs: 'BP / FP Gauge Condition',              defaultStatus: ' ()' },
+    { sn: 21, obs: 'Hand Brake',                           defaultStatus: 'WORKING' },
+];
+
+function buildInspectionTable() {
+    const tbody = document.getElementById('inspectionBody');
+    tbody.innerHTML = '';
+    inspectionItems.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.sn}</td>
+            <td class="obs-cell">${item.obs}</td>
+            <td><input type="text" class="status-input" data-sn="${item.sn}" value="${item.defaultStatus}" placeholder=""></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────────
+function submitForm() {
+    const data = collectFormData();
+    console.log('Form Data:', data);
+    showMessage('Form submitted successfully! Check console for data.', 'success');
+}
+
+function collectFormData() {
+    const statusInputs = document.querySelectorAll('.status-input');
+    const statuses = {};
+    statusInputs.forEach(inp => { statuses[inp.dataset.sn] = inp.value; });
+
+    const crewRow = document.querySelector('#crewTable tbody tr');
+    const crewCells = crewRow ? crewRow.querySelectorAll('input, select') : [];
+
+    return {
+        formDate:          document.getElementById('formDate').value,
+        trainNo:           document.getElementById('trainNo').value,
+        load:              document.getElementById('load').value,
+        slr:               document.getElementById('slr').value,
+        bpcNo:             document.getElementById('bpcNo').value,
+        issued:            document.getElementById('issued').value,
+        issuedDate:        document.getElementById('issuedDate').value,
+        brpPercent:        document.getElementById('brpPercent').value,
+        crew: {
+            name:          crewCells[0] ? crewCells[0].value : '',
+            hq:            crewCells[1] ? crewCells[1].value : '',
+            pmeDue:        crewCells[2] ? crewCells[2].value : '',
+            crcDue:        crewCells[3] ? crewCells[3].value : '',
+            spectacles:    crewCells[4] ? crewCells[4].value : '',
+            detonators:    crewCells[5] ? crewCells[5].value : '',
+            uniform:       crewCells[6] ? crewCells[6].value : ''
+        },
+        inspectionStatuses: statuses,
+        locoNumber:        document.getElementById('locoNumber').value,
+        inspectionSection: document.getElementById('inspectionSection').value,
+        lpName:            document.getElementById('lpName').value,
+        alpName:           document.getElementById('alpName').value,
+        rDepBytArr:        document.getElementById('DepArr').value,
+        allRightSignal:    document.getElementById('allRightSignal').value,
+        irregularities:    document.getElementById('irregularities').value,
+        otherRemarks:      document.getElementById('otherRemarks').value,
+        place:             document.getElementById('place').value,
+        signDate:          document.getElementById('signDate').value,
+        cliName:           document.getElementById('cliName').value
+    };
+}
+
+// ── SAVE DRAFT ────────────────────────────────────────────────────
+function saveDraft() {
+    const data = collectFormData();
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BrakeVan_Draft_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showMessage('Draft saved successfully!', 'success');
+}
+
+// ── UPLOAD DRAFT ─────────────────────────────────────────────────
+function handleDraftUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const d = JSON.parse(e.target.result);
+            document.getElementById('formDate').value          = d.formDate || '';
+            document.getElementById('trainNo').value           = d.trainNo || '';
+            document.getElementById('load').value              = d.load || '';
+            document.getElementById('slr').value               = d.slr || '';
+            document.getElementById('bpcNo').value             = d.bpcNo || '';
+            document.getElementById('issued').value            = d.issued || '';
+            document.getElementById('issuedDate').value        = d.issuedDate || '';
+            document.getElementById('brpPercent').value        = d.brpPercent || '';
+            document.getElementById('locoNumber').value        = d.locoNumber || '';
+            document.getElementById('inspectionSection').value = d.inspectionSection || '';
+            document.getElementById('lpName').value            = d.lpName || '';
+            document.getElementById('alpName').value           = d.alpName || '';
+            document.getElementById('DepArr').value            = d.rDepBytArr || '';
+            document.getElementById('allRightSignal').value    = d.allRightSignal || '';
+            document.getElementById('irregularities').value    = d.irregularities || '';
+            document.getElementById('otherRemarks').value      = d.otherRemarks || '';
+            document.getElementById('place').value             = d.place || '';
+            document.getElementById('signDate').value          = d.signDate || '';
+            document.getElementById('cliName').value           = d.cliName || '';
+
+            // Crew
+            if (d.crew) {
+                const crewRow = document.querySelector('#crewTable tbody tr');
+                if (crewRow) {
+                    const cells = crewRow.querySelectorAll('input, select');
+                    if (cells[0]) cells[0].value = d.crew.name || '';
+                    if (cells[1]) cells[1].value = d.crew.hq || '';
+                    if (cells[2]) cells[2].value = d.crew.pmeDue || '';
+                    if (cells[3]) cells[3].value = d.crew.crcDue || '';
+                    if (cells[4]) cells[4].value = d.crew.spectacles || '';
+                    if (cells[5]) cells[5].value = d.crew.detonators || '';
+                    if (cells[6]) cells[6].value = d.crew.uniform || '';
+                }
+            }
+
+            // Inspection statuses
+            if (d.inspectionStatuses) {
+                Object.entries(d.inspectionStatuses).forEach(([sn, val]) => {
+                    const inp = document.querySelector(`.status-input[data-sn="${sn}"]`);
+                    if (inp) inp.value = val;
+                });
+            }
+
+            showMessage('Draft uploaded successfully!', 'success');
+        } catch (err) {
+            showMessage('Error loading draft file. Please check the file format.', 'error');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ── GENERATE PDF ──────────────────────────────────────────────────
+function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // ── TITLE BLOCK: Navy blue background, white title, yellow subtitle ──
+    const headerH = 24;
+    doc.setFillColor(13, 27, 110);
+    doc.rect(0, 0, pageW, headerH, 'F');
+    doc.setDrawColor(255, 193, 7);
+    doc.setLineWidth(1.5);
+    doc.line(0, headerH, pageW, headerH);
+    doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.setTextColor(255, 255, 255);
+    doc.text('AMBUSH BRAKE VAN INSPECTION REPORT', pageW / 2, 11, { align: 'center' });
+    doc.setFontSize(11); doc.setTextColor(255, 193, 7);
+    doc.text('RAIPUR DIVISION', pageW / 2, 19, { align: 'center' });
+    doc.setTextColor(0, 0, 0); doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.5);
+
+    // Top fields
+    const fv = id => document.getElementById(id).value || '';
+    let y = headerH + 8;
+    doc.setFontSize(9); doc.setFont(undefined, 'bold');
+    doc.text(`DATE: ${fv('formDate')}`,          14,        y);
+    doc.text(`TRAIN NO: ${fv('trainNo')}`,        pageW/2,   y);  y += 6;
+    doc.text(`LOAD: ${fv('load')}`,              14,        y);
+    doc.text(`SLR: ${fv('slr')}`,                pageW/2,   y);  y += 6;
+    doc.text(`BPC NO: ${fv('bpcNo')}`,           14,        y);
+    doc.text(`ISSUED: ${fv('issued')}`,           pageW/2,   y);  y += 6;
+    doc.text(`ISSUED DATE: ${fv('issuedDate')}`, 14,        y);
+    doc.text(`BR/P %: ${fv('brpPercent')}`,      pageW/2,   y);  y += 8;
+
+    // ── Crew table ──
+    const crewRow   = document.querySelector('#crewTable tbody tr');
+    const crewCells = crewRow ? crewRow.querySelectorAll('input, select') : [];
+    const getV = (cells, i) => cells[i] ? cells[i].value : '';
+
+    doc.autoTable({
+        head: [['Crew','Name','HQ','PME Due','CRC Due','Spectacles','Detonators','Uniform']],
+        body: [['TM', getV(crewCells,0), getV(crewCells,1), getV(crewCells,2),
+                getV(crewCells,3), getV(crewCells,4), getV(crewCells,5), getV(crewCells,6)]],
+        startY: y, theme: 'grid',
+        headStyles: { fillColor: [13,27,110], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 8 },
+        styles: { fontSize: 7, cellPadding: 2, halign: 'center' },
+        alternateRowStyles: { fillColor: [240,248,255] }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    // ── Inspection table ──
+    const inspBody = inspectionItems.map(item => {
+        const inp = document.querySelector(`.status-input[data-sn="${item.sn}"]`);
+        return [item.sn, item.obs, inp ? inp.value : ''];
+    });
+    doc.autoTable({
+        head: [['SN','Observation / Irregularities','Status']],
+        body: inspBody, startY: y, theme: 'grid',
+        headStyles: { fillColor: [13,27,110], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 8 },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: { 0: { halign:'center', cellWidth:12 }, 1: { halign:'left', cellWidth:110 }, 2: { halign:'center' } },
+        alternateRowStyles: { fillColor: [240,248,255] }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    // ── ADDITIONAL INFORMATION – bordered 2-column aligned table ──
+    if (y > 230) { doc.addPage(); y = 15; }
+
+    doc.autoTable({
+        head: [['FIELD', 'DETAILS']],
+        body: [
+            ['LOCO NUMBER',                             fv('locoNumber')],
+            ['INSPECTION SECTION',                      fv('inspectionSection')],
+            ['NAME OF LOCO PILOT (MAIL/EXPRESS)',       fv('lpName')],
+            ['NAME OF ALP',                             fv('alpName')],
+            ['R DEP / BYT ARR',                        fv('DepArr')],
+            ['ALL RIGHT SIGNAL EXCHANGE BY CREW & TM', fv('allRightSignal')]
+        ],
+        startY: y, theme: 'grid',
+        headStyles: { fillColor: [13,27,110], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 9, cellPadding: 3 },
+        columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 95, halign: 'left', fillColor: [230,242,255] },
+            1: { halign: 'left' }
+        },
+        styles: { fontSize: 8, cellPadding: 3, lineColor: [13,27,110], lineWidth: 0.4 },
+        margin: { left: 14, right: 14 },
+        didParseCell: function(data) {
+            if (data.section === 'head' && data.column.index === 0) {
+                data.cell.text = ['ADDITIONAL INFORMATION'];
+                data.cell.colSpan = 2;
+            }
+            if (data.section === 'head' && data.column.index === 1) {
+                data.cell.text = [];
+            }
+        }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    // ── Remarks – bordered table with irregularities and otherRemarks values ──
+    const irregularitiesValue = fv('irregularities') || '-';
+    const otherRemarksValue = fv('otherRemarks') || '-';
+
+    doc.autoTable({
+        head: [['FIELD', 'DETAILS']],
+        body: [
+            ['IRREGULARITIES (IF ANY)', irregularitiesValue],
+            ['OTHER REMARKS (IF ANY)', otherRemarksValue]
+        ],
+        startY: y, theme: 'grid',
+        headStyles: { fillColor: [13,27,110], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 9, cellPadding: 3 },
+        columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 70, halign: 'left', fillColor: [230,242,255] },
+            1: { halign: 'left' }
+        },
+        styles: { fontSize: 8, cellPadding: 3, lineColor: [13,27,110], lineWidth: 0.4 },
+        margin: { left: 14, right: 14 },
+        didParseCell: function(data) {
+            if (data.section === 'head' && data.column.index === 0) {
+                data.cell.text = ['REMARKS & IRREGULARITIES'];
+                data.cell.colSpan = 2;
+            }
+            if (data.section === 'head' && data.column.index === 1) {
+                data.cell.text = [];
+            }
+        }
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    // ── Inspector details section (signature removed) ──
+    const cliName  = fv('cliName');
+    const place    = fv('place');
+    const signDate = fv('signDate');
+
+    doc.setFont(undefined,'bold'); doc.setFontSize(9); doc.setTextColor(0,0,0);
+    if (place)    doc.text(`PLACE: ${place}`,         14,        y);
+    if (signDate) doc.text(`DATE: ${signDate}`,       14,        y + 6);
+    if (cliName)  doc.text(`CLI NAME & HQ: ${cliName}`, pageW-14, y, { align:'right' });
+
+    doc.save(`BrakeVan_Inspection_${new Date().toISOString().split('T')[0]}.pdf`);
+    showMessage('PDF generated and downloaded successfully!', 'success');
+}
+
+// ── SHOW MESSAGE ─────────────────────────────────────────────────
+function showMessage(text, type) {
+    const el = document.getElementById('message');
+    el.textContent = text;
+    el.className = `message ${type}`;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+// ── MOBILE VIEW ─────────────────────────────────────────────────
+function toggleMobileView() {
+    const toggle = document.getElementById('mobileToggle');
+    document.body.classList.toggle('mobile-view', toggle.checked);
+    showMessage(toggle.checked ? 'Mobile view enabled!' : 'Mobile view disabled!', 'success');
+}
+
+// ── ZOOM OVERLAY ─────────────────────────────────────────────────
+let originalInputElement = null;
+
+function openZoomInput(inputElement) {
+    originalInputElement = inputElement;
+    const zoomOverlay = document.getElementById('zoomOverlay');
+    const zoomInput = document.getElementById('zoomInput');
+    document.getElementById('zoomTitle').textContent = inputElement.placeholder || 'Enter Text';
+    zoomInput.value = inputElement.value;
+    zoomOverlay.classList.add('active');
+    setTimeout(() => zoomInput.focus(), 100);
+    inputElement.blur();
+}
+
+function closeZoomInput() {
+    if (originalInputElement) originalInputElement.value = document.getElementById('zoomInput').value;
+    document.getElementById('zoomOverlay').classList.remove('active');
+    document.getElementById('zoomInput').value = '';
+    originalInputElement = null;
+}
+
+// ── VOICE TYPING ─────────────────────────────────────────────────
+let recognition = null;
+let voiceEnabled = false;
+let currentInput = null;
+
+function initVoiceRecognition() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SR();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = event => {
+            if (!currentInput) return;
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript + ' ';
+            }
+            if (finalTranscript) {
+                const cursorPos = currentInput.selectionStart;
+                const before = currentInput.value.substring(0, cursorPos);
+                const after  = currentInput.value.substring(cursorPos);
+                currentInput.value = before + finalTranscript.toUpperCase() + after;
+                const newPos = before.length + finalTranscript.length;
+                currentInput.setSelectionRange(newPos, newPos);
+            }
+        };
+
+        recognition.onerror = event => {
+            if (event.error === 'not-allowed') {
+                showMessage('Microphone access denied.', 'error');
+                document.getElementById('voiceToggle').checked = false;
+                toggleVoiceTyping();
+            }
+        };
+        return true;
+    }
+    showMessage('Voice recognition not supported. Use Chrome or Edge.', 'error');
+    return false;
+}
+
+async function toggleVoiceTyping() {
+    const toggle = document.getElementById('voiceToggle');
+    const status = document.getElementById('voiceStatus');
+    voiceEnabled = toggle.checked;
+
+    if (voiceEnabled) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(t => t.stop());
+            if (!recognition && !initVoiceRecognition()) { toggle.checked = false; return; }
+            status.textContent = 'ON'; status.style.color = '#2ecc71';
+            document.getElementById('voiceIndicator').classList.add('listening');
+            try { recognition.start(); } catch(e) {}
+            showMessage('Voice typing enabled! Click any text field to start dictating.', 'success');
+            setupVoiceInputs();
+        } catch(err) {
+            showMessage('Microphone permission denied.', 'error');
+            toggle.checked = false; voiceEnabled = false;
+        }
+    } else {
+        status.textContent = 'OFF'; status.style.color = 'white';
+        if (recognition) recognition.stop();
+        document.getElementById('voiceIndicator').classList.remove('listening');
+        showMessage('Voice typing disabled.', 'success');
+        removeVoiceInputs();
+    }
+}
+
+function setupVoiceInputs() {
+    document.querySelectorAll('input[type="text"], textarea').forEach(inp => {
+        inp.addEventListener('focus', handleInputFocus);
+        inp.addEventListener('blur', handleInputBlur);
+    });
+}
+
+function removeVoiceInputs() {
+    document.querySelectorAll('input[type="text"], textarea').forEach(inp => {
+        inp.removeEventListener('focus', handleInputFocus);
+        inp.removeEventListener('blur', handleInputBlur);
+    });
+    currentInput = null;
+}
+
+function handleInputFocus(event) {
+    if (document.body.classList.contains('mobile-view') && event.target.closest('td')) {
+        openZoomInput(event.target); return;
+    }
+    if (voiceEnabled) {
+        currentInput = event.target;
+        currentInput.style.borderColor = '#e74c3c';
+        currentInput.style.boxShadow = '0 0 10px rgba(231,76,60,0.3)';
+    }
+}
+
+function handleInputBlur(event) {
+    if (voiceEnabled && event.target === currentInput) {
+        event.target.style.borderColor = '#b3d9ff';
+        event.target.style.boxShadow = 'none';
+    }
+}
+
+// ── AUTO-RESIZE TEXTAREA ──────────────────────────────────────────
+function autoResizeTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    buildInspectionTable();
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('formDate').value = today;
+    document.getElementById('signDate').value = today;
+
+    ['otherRemarks', 'irregularities'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => autoResizeTextarea(el));
+    });
+
+    // Mobile zoom support
+    document.addEventListener('focus', e => {
+        const target = e.target;
+        if (target.matches('input[type="text"], textarea') && target.closest('td') && document.body.classList.contains('mobile-view')) {
+            handleInputFocus(e);
+        }
+    }, true);
+});
+</script>
+</body>
+</html>
